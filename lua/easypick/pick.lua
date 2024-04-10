@@ -1,8 +1,8 @@
-local telescope_pickers = require "telescope.pickers"
-local finders = require "telescope.finders"
+local telescope_pickers = require("telescope.pickers")
+local finders = require("telescope.finders")
 local conf = require("telescope.config").values
-local actions = require "easypick.actions"
-local themes = require "telescope.themes"
+local actions = require("easypick.actions")
+local themes = require("telescope.themes")
 
 local function all(pickers)
 	local opts = themes.get_dropdown({})
@@ -10,21 +10,23 @@ local function all(pickers)
 	for _, value in pairs(pickers) do
 		table.insert(picker_names, value.name)
 	end
-	telescope_pickers.new(opts, {
-		prompt_title = "Easypick",
-		finder = finders.new_table {
-			results = picker_names,
-		},
-		sorter = conf.generic_sorter(opts),
-		attach_mappings = actions.nvim_command("Easypick")
-	}):find()
+	telescope_pickers
+		.new(opts, {
+			prompt_title = "Easypick",
+			finder = finders.new_table({
+				results = picker_names,
+			}),
+			sorter = conf.generic_sorter(opts),
+			attach_mappings = actions.nvim_command("Easypick"),
+		})
+		:find()
 end
 
 local function run_command(command)
 	local handle = io.popen(command)
 
-	if (handle == nil) then
-		print('could not run specified command:' .. command)
+	if handle == nil then
+		print("could not run specified command:" .. command)
 		return
 	end
 
@@ -39,8 +41,8 @@ local function parse_command_output(output)
 	local list = {}
 
 	-- check if output is a string
-	if type(output) ~= 'string' then
-		print('command did not return a string')
+	if type(output) ~= "string" then
+		print("command did not return a string")
 		return
 	end
 
@@ -52,10 +54,10 @@ local function parse_command_output(output)
 end
 
 local function one(picker_name, pickers)
-	if picker_name == '' then
+	if picker_name == "" then
 		return all(pickers)
 	end
-	local command = ''
+	local command = ""
 	local previewer = {}
 	local action = function()
 		-- dont do anything
@@ -69,6 +71,7 @@ local function one(picker_name, pickers)
 	end
 	local opts = {}
 
+	local picker_title = picker_name
 	for _, value in pairs(pickers) do
 		if value.name == picker_name then
 			command = value.command
@@ -76,11 +79,12 @@ local function one(picker_name, pickers)
 			action = value.action
 			entry_maker = value.entry_maker
 			opts = value.opts
+			picker_title = value.title or picker_name
 		end
 	end
 
-	if command == '' then
-		print('picker with name ' .. picker_name .. ' does not exist')
+	if command == "" then
+		print("picker with name " .. picker_name .. " does not exist")
 		return
 	end
 
@@ -88,16 +92,18 @@ local function one(picker_name, pickers)
 
 	local list = parse_command_output(result)
 
-	telescope_pickers.new(opts, {
-		prompt_title = picker_name,
-		finder = finders.new_table {
-			results = list,
-			entry_maker = entry_maker,
-		},
-		sorter = conf.generic_sorter(opts),
-		previewer = previewer,
-		attach_mappings = action
-	}):find()
+	telescope_pickers
+		.new(opts, {
+			prompt_title = picker_title,
+			finder = finders.new_table({
+				results = list,
+				entry_maker = entry_maker,
+			}),
+			sorter = conf.generic_sorter(opts),
+			previewer = previewer,
+			attach_mappings = action,
+		})
+		:find()
 end
 
 local function one_off(command)
@@ -105,13 +111,15 @@ local function one_off(command)
 
 	local list = parse_command_output(result)
 
-	telescope_pickers.new({}, {
-		prompt_title = command,
-		finder = finders.new_table {
-			results = list,
-		},
-		sorter = conf.generic_sorter({}),
-	}):find()
+	telescope_pickers
+		.new({}, {
+			prompt_title = command,
+			finder = finders.new_table({
+				results = list,
+			}),
+			sorter = conf.generic_sorter({}),
+		})
+		:find()
 end
 
 return {
